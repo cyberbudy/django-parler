@@ -92,8 +92,10 @@ class TranslatedFieldDescriptor(object):
             translation = instance._get_translated_model(use_fallback=True, meta=meta)
         except meta.model.DoesNotExist as e:
             if self.field.any_language:
-                translation = instance._get_any_translated_model(meta=meta)  # returns None on error.
-
+                return instance._get_any_translated_model(meta=meta)  # returns None on error.
+            elif self.field.name == "visibility_field":
+                # return instance._get_any_translated_model(meta=meta)  # returns None on error.
+                return False # some bad code to work with django-moderation
             if translation is None:
                 # Improve error message
                 e.args = ("{1}\nAttempted to read attribute {0}.".format(self.field.name, e.args[0]),)

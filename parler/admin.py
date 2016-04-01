@@ -226,7 +226,7 @@ class TranslatableAdmin(BaseTranslatableAdmin, admin.ModelAdmin):
         active_languages = self.get_available_languages(object)
         if all_languages is None:
             all_languages = active_languages
-
+        current_language = get_language()
         current_language = object.get_current_language()
         buttons = []
         opts = self.opts
@@ -289,7 +289,6 @@ class TranslatableAdmin(BaseTranslatableAdmin, admin.ModelAdmin):
         """
         # The args/kwargs are to support Django 1.8, which adds a from_field parameter
         obj = super(TranslatableAdmin, self).get_object(request, object_id, *args, **kwargs)
-
         if obj is not None and self._has_translatable_model():  # Allow fallback to regular models.
             obj.set_current_language(self._language(request, obj), initialize=True)
 

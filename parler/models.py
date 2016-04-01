@@ -244,12 +244,12 @@ class TranslatableModelMixin(object):
         # the QuerySet.iterator() code changes it after construction.
         self._translations_cache = None
         self._current_language = None
+        self._translations_cache = defaultdict(dict)
 
         # Run original Django model __init__
         super(TranslatableModelMixin, self).__init__(*args, **kwargs)
 
         # Assign translated args manually.
-        self._translations_cache = defaultdict(dict)
         self._current_language = normalize_language_code(current_language or get_language())  # What you used to fetch the object is what you get.
 
         if translated_kwargs:
@@ -588,7 +588,6 @@ class TranslatableModelMixin(object):
 
     def save(self, *args, **kwargs):
         super(TranslatableModelMixin, self).save(*args, **kwargs)
-
         # Makes no sense to add these for translated model
         # Even worse: mptt 0.7 injects this parameter when it avoids updating the lft/rgt fields,
         # but that misses all the translated fields.
@@ -672,6 +671,8 @@ class TranslatableModelMixin(object):
             if not translation.master_id:  # Might not exist during first construction
                 translation._state.db = self._state.db
                 translation.master = self
+
+            # if translation.language_code:
             translation.save(*args, **kwargs)
 
     def safe_translation_getter(self, field, default=None, language_code=None, any_language=False):
