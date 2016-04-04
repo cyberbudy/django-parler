@@ -634,16 +634,21 @@ class TranslatableModelMixin(object):
         # Copy cache, new objects (e.g. fallbacks) might be fetched if users override save_translation()
         # Not looping over the cache, but using _parler_meta so the translations are processed in the order of inheritance.
         local_caches = self._translations_cache.copy()
+        # using django-moderation ahd to reenabled current lang
+        self.set_current_language(self.language_code)
+
         for meta in self._parler_meta:
             local_cache = local_caches[meta.model]
             translations = list(local_cache.values())
-
             # Save all translated objects which were fetched.
             # This also supports switching languages several times, and save everything in the end.
             for translation in translations:
+                if (not translation.id and
+                    (hasattr(translation, "name") and not translation.name or
+                        hasattr(translation, "description") and not translation.description)):
+                    continue
                 if translation is MISSING:  # Skip fallback markers
                     continue
-
                 self.save_translation(translation, *args, **kwargs)
 
     def save_translation(self, translation, *args, **kwargs):

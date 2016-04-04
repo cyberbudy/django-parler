@@ -161,7 +161,6 @@ class TranslatableModelFormMetaclass(ModelFormMetaclass):
         # Before constructing class, fetch attributes from bases list.
         form_meta = _get_mro_attribute(bases, '_meta')
         form_base_fields = _get_mro_attribute(bases, 'base_fields', {})  # set by previous class level.
-
         if form_meta:
             # Not declaring the base class itself, this is a subclass.
 
@@ -171,6 +170,15 @@ class TranslatableModelFormMetaclass(ModelFormMetaclass):
             form_new_meta = attrs.get('Meta', form_meta)
             form_model = form_new_meta.model if form_new_meta else form_meta.model
 
+            try:
+                trans_fields = form_meta.model._parler_meta.get_translated_fields()
+            except:
+                trans_fields = []
+
+            if trans_fields:
+                for attr, value in attrs.iteritems():
+                    if attr in trans_fields and not value:
+                        attrs.pop(attr)
             # Detect all placeholders at this class level.
             placeholder_fields = [
                 f_name for f_name, attr_value in six.iteritems(attrs) if isinstance(attr_value, TranslatedField)
@@ -185,7 +193,6 @@ class TranslatableModelFormMetaclass(ModelFormMetaclass):
                     exclude = getattr(form_new_meta, 'exclude', form_meta.exclude) or ()
                     widgets = getattr(form_new_meta, 'widgets', form_meta.widgets) or ()
                     formfield_callback = attrs.get('formfield_callback', None)
-
                     if fields == '__all__':
                         fields = None
 
@@ -193,8 +200,10 @@ class TranslatableModelFormMetaclass(ModelFormMetaclass):
                         # Add translated field if not already added, and respect exclude options.
                         if f_name in placeholder_fields:
                             # The TranslatedField placeholder can be replaced directly with actual field, so do that.
-                            attrs[f_name] = _get_model_form_field(translations_model, f_name, formfield_callback=formfield_callback, **attrs[f_name].kwargs)
+                            model_form_field = _get_model_form_field(translations_model, f_name, formfield_callback=formfield_callback, **attrs[f_name].kwargs)
 
+                            if model_form_field:
+                                attrs[f_name] = model_form_field
                         # The next code holds the same logic as fields_for_model()
                         # The f.editable check happens in _get_model_form_field()
                         elif f_name not in form_base_fields \

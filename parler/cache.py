@@ -149,8 +149,10 @@ def _cache_translation(translation, timeout=DEFAULT_TIMEOUT):
     if not appsettings.PARLER_ENABLE_CACHING:
         return
 
+    # raise error but now - lets set so
     if translation.master_id is None:
-        raise ValueError("Can't cache unsaved translation")
+        return
+        # raise ValueError("Can't cache unsaved translation")
 
     # Cache a translation object.
     # For internal usage, object parameters are not suited for outside usage.

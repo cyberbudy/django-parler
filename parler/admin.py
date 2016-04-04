@@ -226,8 +226,8 @@ class TranslatableAdmin(BaseTranslatableAdmin, admin.ModelAdmin):
         active_languages = self.get_available_languages(object)
         if all_languages is None:
             all_languages = active_languages
-        current_language = get_language()
         current_language = object.get_current_language()
+        current_language = get_language()
         buttons = []
         opts = self.opts
         for code in (all_languages or active_languages):
